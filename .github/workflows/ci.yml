@@ -40,5 +40,5 @@ jobs:
 
       - name: Push latest tag
         run: |
-          docker tag mansuralam44/my-react-app:${{ github.sha }} mansuralam/my-react-app:latest
+          docker tag mansuralam44/my-react-app:${{ github.sha }} mansuralam44/my-react-app:latest
           docker push mansuralam44/my-react-app:latest
