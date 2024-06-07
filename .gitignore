@@ -5,6 +5,7 @@
 /.pnp
 .pnp.js
 /test.yaml
+/practice.yaml
 
 # testing
 /coverage
