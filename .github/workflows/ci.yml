@@ -53,8 +53,9 @@ jobs:
           node-version: '20'
           cache: 'npm'
       - run: npm ci
-      - name: Run integration tests
-        run: CI=true npm test -- --testPathPattern=tests/integration
+      - name: Run integration tests with custom pattern
+        run: |
+          CI=true npm test -- --testPathPattern="(tests/integration|src/.*\.integration)" --watchAll=false
         env:
           DATABASE_URL: postgresql://testuser:testpass@localhost:5432/testdb
-          
+                
