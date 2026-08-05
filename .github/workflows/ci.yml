@@ -80,3 +80,62 @@ jobs:
         run: CI=true npm test -- --testPathPattern="__e2e__" --watchAll=false --passWithNoTests
         env:
           REACT_APP_API_URL: http://localhost:3000
+
+  e2e-selenium-tests:
+    runs-on: ubuntu-latest
+    needs: integration-tests
+    timeout-minutes: 15
+    
+    # 🎯 THIS is how you know it's Selenium!
+    services:
+      selenium:
+        image: selenium/standalone-chrome:latest
+        ports:
+          - 4444:4444
+        options: >-
+          --health-cmd "curl -f http://localhost:4444/wd/hub/status || exit 1"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      
+      # Optional: If your app needs a database too
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_PASSWORD: testpass
+          POSTGRES_USER: testuser
+          POSTGRES_DB: testdb
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U testuser"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - run: npm ci
+      
+      # Build your app
+      - name: Build app
+        run: npm run build
+      
+      # Serve your app (Selenium needs it running)
+      - name: Start application
+        run: |
+          npx serve -s build -l 3000 &
+          sleep 5
+      
+      # 🎯 THIS runs the actual Selenium tests
+      - name: Run Selenium E2E tests
+        run: CI=true npm test -- --testPathPattern="__e2e__" --watchAll=false
+        env:
+          SELENIUM_REMOTE_URL: http://localhost:4444/wd/hub
+          APP_BASE_URL: http://localhost:3000
+          CI: true
